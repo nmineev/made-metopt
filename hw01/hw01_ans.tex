@@ -1,0 +1,173 @@
+\documentclass{article}
+
+\usepackage{cmap}  % should be before fontenc
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[pdftex,colorlinks=true,linkcolor=blue,urlcolor=red,unicode=true,hyperfootnotes=false,bookmarksnumbered]{hyperref}
+\usepackage{indentfirst}
+
+\usepackage{enumitem}
+
+% так можно определять команду для повторяющихся обозначений,
+% чтобы не набирать каждый раз заново
+\newcommand{\E}{\ensuremath{\mathsf{E}}}  % матожидание
+\newcommand{\D}{\ensuremath{\mathsf{D}}}  % дисперсия
+\newcommand{\Prb}{\ensuremath{\mathsf{P}}}  % вероятностная мера
+
+\newcommand{\eps}{\varepsilon}  % нормальная буква эпсилон
+\renewcommand{\phi}{\varphi}  % нормальная буква фи
+
+\renewcommand{\le}{\leqslant}  % нормальный знак <=
+\renewcommand{\leq}{\leqslant}  % нормальный знак <=
+\renewcommand{\ge}{\geqslant}  % нормальный знак >=
+\renewcommand{\geq}{\geqslant}  % нормальный знак >=
+
+\newtheorem{lemma}{Лемма}  % создаёт команд для лемм, можно сделать так же для любого другого вида утверждений
+
+\pagestyle{myheadings}
+\markright{Никита Минеев\hfill}  % <- здесь нужно подставить свои имя и фамилию
+
+\begin{document}
+\section*{Методы оптимизации в ML, весна 2023. Домашнее задание 1}
+\subsubsection*{1. Выпуклые множества (1 балл)}
+\begin{enumerate}[label=\alph*)]
+  \item $X \cup Y$: Не сохраняет выпуклость; \, Контрпример:\\
+      $X=\{x: 0 \leq x \leq 1\}$ -- отрезок от 0 до 1,\\
+      $Y=\{y: 2 \leq x \leq 3\}$ -- отрезок от 2 до 3,\\
+      Пусть $x=1, y=2$, тогда $z = \alpha \cdot 1 + (1 - \alpha) \cdot 2 = 2 - \alpha \notin X \cup Y$ 
+      при $\alpha = 0.5$
+  \item $X \times Y$: Cохраняет выпуклость; \, Док-во:\\
+      Пусть $a=(x_1, y_1) \in X \times Y, \, b=(x_2, y_2) \in X \times Y$\\
+      Тогда $\alpha a + (1 - \alpha) b = (\alpha x_1 + (1 - \alpha) x_2, \alpha y_1 + (1 - \alpha) y_2)
+       \in X \times Y$, тк X и Y выпуклые.
+  \item $aX + bY$: Cохраняет выпуклость; \, Док-во:\\
+      Пусть $x_1, x_2 \in X, y_1, y_2 \in Y$.\\
+      Тогда\\      
+      $x_3 = \alpha x_1 + (1 - \alpha) x_2 \in X$,\\
+      $y_3 = \alpha y_1 + (1 - \alpha) y_2 \in Y$,\\
+      $a x_1 + b y_1 \in aX + bY$,\\
+      $a x_2 + b y_2 \in aX + bY$,\\
+      $\alpha (a x_1 + b y_1) + (1 - \alpha) (a x_2 + b y_2) = 
+      \alpha a x_1 + (1 - \alpha) a x_2 + \alpha b y_1 + (1 - \alpha) b y_2) = 
+      a x_3 + b y_3 \in aX + bY$.
+  \item $aX$: Cохраняет выпуклость; \, Док-во: как частный случай c) при $b = 0$.
+  \item $X^c$: Не сохраняет выпуклость; \, Контрпример:\\
+      Пусть\\
+      $X=[0;1]$ -- отрезок от 0 до 1,\\
+      Тогда\\
+      $X^c=(-\inf;0) \cup (1;\inf)$,\\
+      при $x=-1 \in X^c, y=2 \in X^c$,\\ 
+      $z = \alpha \cdot -1 + (1 - \alpha) \cdot 2 = 2 - 3 \alpha \notin X^c$ 
+      при $\alpha = 0.5$
+\end{enumerate}
+
+\subsubsection*{2. Матрично-векторное дифференцирование (3 балла)}
+\begin{enumerate}
+  \item $f(x) = \log(x^TAx)$:\\
+      $d(x^TAx) = \langle (A + A^T)x, dx \rangle$ -- док-во на лекции.\\
+      $df(x) = d(\log(x^TAx)) = \frac{d(x^TAx)}{x^TAx} 
+      = \frac{\langle (A + A^T)x, dx \rangle}{x^TAx}$,\\
+      $\nabla f(x) = \frac{(A + A^T)x}{x^TAx}$.\\
+      Следовательно, правильный вариант b.
+  \item $f(x) = \frac1p ||x||^p_2, \, p > 1$:\\
+      $d||x||_2 = ||x||^{-1}_2 \langle x, dx \rangle$ -- док-во на лекции.\\
+      $df(x) = ||x||^{p-1}_2 d||x||_2 = ||x||^{p-2}_2 \langle x, dx \rangle$,\\
+      $\nabla f(x) = ||x||^{p-2}_2 x$.\\
+      $d^2f(x) = d(||x||^{p-2}_2 \langle x, dx_1 \rangle) = $\\
+      \{По правилу Лейбница\}\\
+      $= d(||x||^{p-2}_2) \langle x, dx_1 \rangle + ||x||^{p-2}_2 d(\langle x, dx_1 \rangle) 
+      = (p - 2) ||x||^{p-3}_2 ||x||^{-1}_2 \langle x, dx_2 \rangle \langle x, dx_1 \rangle 
+      + ||x||^{p-2}_2 \langle dx_2, dx_1 \rangle 
+      = \langle ((p - 2) ||x||^{p-4}_2 xx^T + ||x||^{p-2}_2  I_n)dx_1, dx_2 \rangle$,\\
+      $\nabla^2 f(x) = ((p - 2) ||x||^{p-4}_2 xx^T + ||x||^{p-2}_2  I_n)$.\\
+      Следовательно, правильные варианты: b, e.
+  \item $f(x) = \frac1n \sum \log(1 + e^{a_i^T x}) + \frac\mu2 ||x||^2_2$:\\
+      $\nabla \frac\mu2 ||x||^2_2 = \mu \nabla \frac12 ||x||^2_2 = \mu I_n$ 
+      -- как частный случай 2 при $p = 2$.\\
+      $\sigma(x)$ -- сигмоида, $\sigma'(x) = \sigma(x)(1 - \sigma(x))$.\\
+      $d \langle a, x \rangle = \langle a, dx \rangle$ -- док-во на лекции.\\
+      $d \log(1 + e^{ax}) = \frac{d(1 + e^{ax})}{1 + e^{ax}} 
+      = \frac{e^{ax} \langle a, dx \rangle}{1 + e^{ax}} 
+      = \sigma(ax)\langle a, dx \rangle$.\\
+      $d^2 \log(1 + e^{ax}) = d \sigma(ax)\langle a, dx_1 \rangle 
+      = \sigma(ax)(1 - \sigma(ax))\langle a, dx_2 \rangle \langle a, dx_1 \rangle 
+      = \langle (\sigma(ax)(1 - \sigma(ax)) aa^T)dx_1, dx_2 \rangle$,\\
+      $\nabla^2 \log(1 + e^{ax}) = \sigma(ax)(1 - \sigma(ax)) aa^T$.\\
+      $\nabla^2 f(x) = \frac1n \sum \sigma(ax) aa^T - \sigma^2(ax) aa^T + \mu I_n 
+      = \frac1n \sum \frac{e^{ax}}{1 + e^{ax}} aa^T - \frac{e^{2ax}}{(1 + e^{ax})^2} aa^T + \mu I_n$.\\
+      Следовательно, не верно.
+\end{enumerate}
+
+\subsubsection*{3. Выпуклые функции (3 балла)}
+\begin{enumerate}[label=(\alph*)]
+  \item $f(x) = \sum e^{x_i}$;\, Док-во:\\
+      $e^x$ -- выпукла, тк $(e^x)'' = e^x > 0$.\\
+      $f(x)$ -- выпукла, как сумма выпуклых функций.
+  \item $f(x) = \frac{||Ax - b||^2}{1 - ||x||^2}, x \in \{x: ||x||^2 < 1\}$;\, Док-во:\\
+      $||Ax-b||$ -- выпукла как афинная подстановка в выпуклую функцию (норма выпукла, док-во на лекции),
+      неотрицательна по свойству нормы, бесконечно дифференцируема.\\
+      $1 - ||x||^2$ -- вогнута, тк норма выпукла, но после умножения на -1 становится вогнутой, 
+      положительна по условию.\\
+      $f(x)$ -- выпукла, как частный случай (c).
+  \item $F(x) = \frac{f^2(x)}{g(x)}$,\\ 
+      f(x) -- выпукла, неотрицательна, дважды дифф-ма,\\
+      g(x) -- вогнута, положительна;\\
+      Док-во:\\
+      $F(\alpha x + (1 - \alpha) y) 
+      = \frac{(f(\alpha x + (1 - \alpha) y))^2}{g(\alpha x + (1 - \alpha) y)} 
+      \leq \frac{(\alpha f(x) + (1 - \alpha) f(y))^2}{\alpha g(x) + (1 - \alpha) g(y)}$\\
+      \{По нер-ву Коши-Буняковского \url{https://en.wikipedia.org/wiki/Sedrakyan%27s_inequality}\}\\
+      $\leq \alpha \frac{f^2(x)}{g(x)} + (1 - \alpha) \frac{f^2(y))}{g(y)}$, функция $F(x)$ выпукла.
+  \item $aX$:
+  \item $f(x) = \sum w_i \ln(1 + e^{a_i^Tx}) + \frac\mu2||x||^2_2, \mu, w_i > 0$;\, Док-во:\\
+      $(\ln(1 + e^x))'' = \frac{e^x}{(1 + e^x)^2} > 0$, следовательно функ-я выпукла.\\
+      $a_i^Tx$ -- скалярное произведение выпукло(док-во на лекции).\\
+      $\ln(1 + e^{a_i^Tx})$ -- выпукла как суперпозиция выпуклых функ-й.\\
+      $||x||^2_2$ -- выпукла(док-во на лекции).\\
+      $f(x)$ -- выпукла как сумма выпуклых функций с полож. весами.
+  \item $f(x) = \ln \sum e^{\max\{0, x_i\}^2}$;\, Док-во:\\
+      $\max\{0, x_i\}$ -- выпукла как максимум выпуклых функ-й.\\
+      $x^2$ -- выпукла, тк вторая производная неотрицательна.\\
+      $g(\alpha x + (1 - \alpha) y) = \ln \sum e^{\alpha x_i + (1 - \alpha) y_i} 
+      = \ln \sum (e^{x_i})^\alpha (e^{y_i})^{(1 - \alpha)}$\\
+      По нер-ву Гельдера при $p = \frac1\alpha, q = \frac{1}{1 - \alpha}$\\
+      $\leq \alpha \ln \sum e^{x_i} + (1 - \alpha) \ln \sum e^{y_i}$ -- $g(x)$ выпукла.\\
+      $f(x)$ -- выпукла как суперпозиция выпуклых функ-й.
+\end{enumerate}
+
+\subsubsection*{4. (1 балл) Посчитайте субдифференциал функции $f(x) = |c^Tx|, x \in R^n$}
+Аналогично примеру из лекции с функцией $f(x) = \sum_1^m |a^Tx - b|$:\\
+$f(x) = |c^Tx| = \max\{c^Tx, -c^Tx\}$ -- выпуклая функ-я.
+\begin{equation}
+  \partial f(x)=\begin{cases}
+    $c$, & \text{if $c^Tx > 0$}.\\
+    $-c$, & \text{if $c^Tx < 0$}.\\
+    $[-c, c]$ \text{ -- выпуклая оболочка -c и c} & \text{if $c^Tx = 0$}.
+  \end{cases}
+\end{equation}
+
+\subsubsection*{5. (1 балл) Посчитайте субдифференциал функции $f(x) = ||x||_1, x \in R^n$}
+Аналогично примеру из лекции с функцией $f(x) = \sum_1^m |a^Tx - b|$:\\
+$e_i$ -- нулевой вектор с 1 на iм месте.\\
+$f(x) = ||x||_1 = \sum |x_i| = \sum |e_i^Tx| = \sum \max\{e_i^Tx, -e_i^Tx\}$ -- выпуклая функ-я.
+\begin{equation}
+  \partial |e_i^Tx|=\begin{cases}
+    e_i, & \text{$i \in \{i: e_i^Tx > 0\} = I_+(x)$}.\\
+    -e_i, & \text{$i \in \{i: e_i^Tx < 0\} = I_-(x)$}.\\
+    [-e_i, e_i] \text{ -- вып. оболочка} & \text{$i \in \{i: e_i^Tx = 0\} = I_0(x)$}.
+  \end{cases}
+\end{equation}
+
+$\partial f(x) = \sum_{i \in I_+(x)} e_i - \sum_{i \in I_-(x)} e_i + \sum_{i \in I_0(x)} [-e_i, e_i]$.
+
+\subsubsection*{6. (1 балл) Определите константы $\mu$ и $L$ для функции $f(x) = ||x||^2_2$}
+$f(x) = ||x||^2_2 = x^Tx$,\\
+$\nabla f(x) = 2x$ -- док-во на лекции.\\
+$||\nabla f(x) - \nabla f(y)|| = 2||x - y||$ -- получаем по определению $L = 2$.\\
+Для определения $\mu$ используем Теорему 6 из лекции 2:\\
+$\langle \nabla f(x) - \nabla f(y), x - y \rangle = 2 \langle x - y, x - y \rangle 
+= 2 ||x - y||^2$ -- получаем $\mu = 2$.
+
+\end{document}
